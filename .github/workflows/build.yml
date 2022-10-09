@@ -55,12 +55,14 @@ jobs:
         java-version: '17'
         java-package: jdk
         cache: 'gradle'        
-  
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
 
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: 7.5
+    
     - name: Build with Gradle
-      run: ./gradlew build
+      run: gradle build
 
     - name: Upload jar artifact
       uses: actions/upload-artifact@v2
