@@ -70,8 +70,8 @@ Run Gradle build: clean build
 11)
 In VSCode:
 Select Run | Open Configurations 
-Find the "runClient" Configuration 
-Do a Search and replace for "examplemod" with "monomagic".
+Find all MOD_CLASSES lines and add:
+"MOD_CLASSES": "monomagic%%${workspaceFolder}\\bin\\main;monomagic%%${workspaceFolder}\\bin\\main",
 
 Links:
 https://dev.to/drazisil/setting-up-a-minecraft-mod-enviroment-in-vscode-it-s-easier-than-you-think-5bfc
