@@ -44,10 +44,6 @@ jobs:
       id: read_jar_name
       run: echo ::set-output name=jar_file::MonoMagic-${{ steps.read_mc_version.outputs.version }}-${{ steps.read_mod_version.outputs.version }}.jar
 
-    - name: Read server jar name into output variable
-      id: read_server_jar_name
-      run: echo ::set-output name=jar_file::MonoMagic-${{ steps.read_mc_version.outputs.version }}-${{ steps.read_mod_version.outputs.version }}-server.jar
-
     - name: Setup JDK 1.17
       uses: actions/setup-java@v3
       with:
@@ -70,12 +66,6 @@ jobs:
         name: ${{ steps.read_jar_name.outputs.jar_file}}
         path: ./build/libs/${{ steps.read_jar_name.outputs.jar_file}}
 
-    - name: Upload server jar artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ steps.read_server_jar_name.outputs.jar_file}}
-        path: ./build/libs/${{ steps.read_server_jar_name.outputs.jar_file}}
-
   release_job:
     name: Release
     runs-on: ubuntu-latest
@@ -89,12 +79,6 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ${{ needs.build_job.outputs.jar_file}}
-        path: ${{ github.workspace }}/artifact/
-
-    - name: Download server jar artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: ${{ needs.build_job.outputs.server_jar_file}}
         path: ${{ github.workspace }}/artifact/
     
     - name: Display downloaded artifacts
@@ -120,14 +104,3 @@ jobs:
         asset_path: ${{ github.workspace }}/artifact/${{ needs.build_job.outputs.jar_file }}
         asset_name: ${{ needs.build_job.outputs.jar_file }}
         asset_content_type: application/zip
-
-    - name: Upload Release Asset (server jar)
-      uses: actions/upload-release-asset@v1.0.2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ${{ github.workspace }}/artifact/${{ needs.build_job.outputs.server_jar_file}}
-        asset_name: ${{ needs.build_job.outputs.server_jar_file}}
-        asset_content_type: application/zip
-
