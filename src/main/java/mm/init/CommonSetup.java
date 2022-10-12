@@ -1,6 +1,7 @@
 package mm.init;
 
-import mm.MonoMagic;
+import static mm.MonoMagic.getLogger;
+
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 /**
@@ -11,8 +12,8 @@ public class CommonSetup {
     /**
      * Perform common initialization, e.g. server and client
      */
-    static public void init(final FMLCommonSetupEvent event) {                
-        MonoMagic.getLogger().info("init...");
+    static public void init(final FMLCommonSetupEvent event) {            
+        getLogger().info("init...");
     }
     
 }
