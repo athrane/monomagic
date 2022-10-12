@@ -32,4 +32,39 @@ public class ModConstants {
 	 */
 	public static final String MINECRAFT_DOMAIN = "minecraft";
 
+	/**
+	 * GA API version.
+	 */
+	public static final String GA_API_VERSION = "1";
+
+	/**
+	 * GA Property.
+	 */
+	public static final String GA_PROPERTY = "UA-91418540-1";
+
+	/**
+	 * GA application ID.
+	 */
+	public static final String GA_APP_ID = MODID;
+
+	/**
+	 * GA data source.
+	 */
+	public static final String GA_SOURCE = "app";
+
+	/**
+	 * GA exception hit type.
+	 */
+	public static final String GA_HITTYPE_EXCEPTION = "exception";
+
+	/**
+	 * Analytics URL.
+	 */
+	public static final String ANALYTICS_URL = "http://www.google-analytics.com/collect";
+
+	/**
+	 * Number of HTTP threads used for analytics.
+	 */
+	public static final int NUMBER_HTTP_THREADS = 2;
+
 }
