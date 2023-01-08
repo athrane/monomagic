@@ -57,10 +57,30 @@ public class ModConstants {
 	 */
 	public static final String GA_HITTYPE_EXCEPTION = "exception";
 
+	/// -------------------------
+
 	/**
-	 * Analytics URL.
+	 * GA4 secret API key.
 	 */
-	public static final String ANALYTICS_URL = "http://www.google-analytics.com/collect";
+	public static final String GA_API_SECRET = "IknTkW4cRbWOnCWlB-j5bw";
+
+	/**
+	 * GA4 Firebase APP ID.
+     * Uniquely identifies a specific installation of a Firebase app.
+	 */
+	public static final String GA_FIREBASE_APP_ID = "74e3d966ae66eef5dcb50e82cfda2387";
+
+	/**
+	 * Analytics GA4 URL.
+	 */
+	public static final String ANALYTICS_URL = "http://www.google-analytics.com/mp/collect";
+
+	/**
+	 * Analytics GA4 debug URL.
+	 * 
+	 * https://developers.google.com/analytics/devguides/collection/protocol/v1/validating-hits
+	 */
+	public static final String ANALYTICS_DEBUG_URL = "http://www.google-analytics.com/debug/mp/collect";
 
 	/**
 	 * Number of HTTP threads used for analytics.

@@ -13,4 +13,10 @@ public class ServerProxy implements Proxy {
         return "N/A, no user defined server side.";
     }
 
+    @Override
+    public void startAnalyticsSession() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

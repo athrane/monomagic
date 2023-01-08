@@ -2,6 +2,7 @@ package mm.util.analytics;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static mm.ModConstants.ANALYTICS_URL;
+import static mm.ModConstants.GA_API_SECRET;
 import static mm.ModConstants.GA_API_VERSION;
 import static mm.ModConstants.GA_APP_ID;
 import static mm.ModConstants.GA_HITTYPE_EXCEPTION;
@@ -10,7 +11,7 @@ import static mm.ModConstants.GA_SOURCE;
 import static mm.ModConstants.NAME;
 import static mm.ModConstants.NUMBER_HTTP_THREADS;
 import static mm.ModConstants.VERSION;
-import static mm.MonoMagic.*;
+import static mm.MonoMagic.getMod;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -28,10 +30,17 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.FutureRequestExecutionService;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.google.gson.Gson;
+
+import mm.util.analytics.event.AnalyticsPayload;
+import mm.util.analytics.event.DefaultAnalyticsPayload;
+import mm.util.analytics.event.StartSessionAnalyticsEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.minecraftforge.versions.mcp.MCPVersion;
@@ -43,9 +52,10 @@ public class DefaultAnalytics implements Analytics {
 
     /**
      * GA event category.
+	 * Defined as the mod name and version.
      */
 	final static String EVENT_CATEGORY = NAME + "-" + VERSION;
-    
+	
 	/**
 	 * HTTP client.
 	 */
@@ -55,6 +65,11 @@ public class DefaultAnalytics implements Analytics {
 	 * HTTP context.
 	 */
 	HttpClientContext httpContext;
+
+	/**
+	 * HTTP URI builder
+	 */
+	URIBuilder uriBuilder;
 
 	/**
 	 * Executor service.
@@ -81,18 +96,56 @@ public class DefaultAnalytics implements Analytics {
      */
     HashMap<String, String> uids;
 
+	/**
+	 * JSON generator.
+	 */
+	Gson gson;
+
+	/**
+	 * Function to resolve server version. 
+	 */
+	Supplier<String> splServerVersion;
+
     /**
      * No-arg constructor.
+	 * 
+     * @throws Exception if initialization fails.
      */
-    public DefaultAnalytics() {
+	@Deprecated
+    public DefaultAnalytics() throws Exception {
         httpClient = HttpClientBuilder.create().build();
         httpContext = HttpClientContext.create();
         executorService = newFixedThreadPool(NUMBER_HTTP_THREADS);
         executionService = new FutureRequestExecutionService(httpClient, executorService);
         responseHandler = new NullResponseHandler();
-        uids = new HashMap<>();
         jvmArgs = getJvmArgs();
+		uriBuilder = new URIBuilder(ANALYTICS_URL);
+		uriBuilder.addParameters(createRequestParameters());
+		gson = new Gson();
+        uids = new HashMap<>();
     }
+
+    /**
+     * constructor.
+	 * 
+	 * @param splServerVersion function to supply the server version.
+	 * 
+     * @throws Exception if initialization fails.
+     */
+    public DefaultAnalytics(Supplier<String> splServerVersion) throws Exception {
+		this.splServerVersion = splServerVersion;
+        httpClient = HttpClientBuilder.create().build();
+        httpContext = HttpClientContext.create();
+        executorService = newFixedThreadPool(NUMBER_HTTP_THREADS);
+        executionService = new FutureRequestExecutionService(httpClient, executorService);
+        responseHandler = new NullResponseHandler();
+        jvmArgs = getJvmArgs();
+		uriBuilder = new URIBuilder(ANALYTICS_URL);
+		uriBuilder.addParameters(createRequestParameters());
+		gson = new Gson();
+        uids = new HashMap<>();
+	}
+
 
     @Override
 	public void postException(String uid, Throwable e) throws Exception {
@@ -122,12 +175,27 @@ public class DefaultAnalytics implements Analytics {
 		URIBuilder uriBuilder = new URIBuilder(ANALYTICS_URL);
 		uriBuilder.addParameters(postParameters);
 
-		// build request
+		// build request and post
 		URI uri = uriBuilder.build();
 		HttpPost request = new HttpPost(uri);
-
-		// post
 		executionService.execute(request, httpContext, responseHandler);
+	}
+
+	@Override
+	public void startSession(String uid) throws Exception {
+
+		// create JSON payload
+		AnalyticsPayload payload = DefaultAnalyticsPayload.getInstance(uid);
+		payload.addEvent(StartSessionAnalyticsEvent.getInstance());		
+		String json = gson.toJson(payload);
+        System.out.println("json="+json); 
+		StringEntity jsonEntity = new StringEntity(json, ContentType.APPLICATION_JSON);
+
+		// build request and post
+		URI uri = uriBuilder.build();
+		HttpPost request = new HttpPost(uri);
+		request.setEntity(jsonEntity);
+		executionService.execute(request, httpContext, responseHandler);				
 	}
 
 	/**
@@ -152,7 +220,7 @@ public class DefaultAnalytics implements Analytics {
 		parameters.add(new BasicNameValuePair("exf", "0"));
 		return parameters;
 	}
-    
+	
 	/**
 	 * Create user info string.
 	 * 
@@ -201,12 +269,41 @@ public class DefaultAnalytics implements Analytics {
 		}
 	}
 
+	/**
+	 * Create request parameters.
+	 * 
+	 * @return request parameters.
+	 */
+	static List<NameValuePair> createRequestParameters() {
+		List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+		parameters.add(new BasicNameValuePair("api_secret", GA_API_SECRET));
+		parameters.add(new BasicNameValuePair("firebase_app_id", GA_API_VERSION));
+		return parameters;
+	}
+
     /**
      * Factory method.
      * 
      * @return analytics instance.
+	 * 
+     * @throws Exception if initialization fails
      */
-    public static Analytics getInstance() {
+	@Deprecated
+    public static Analytics getInstance() throws Exception {
         return new DefaultAnalytics();
     }
+
+    /**
+     * Factory method.
+     * 
+	 * @param splServerVersion function to supply the server version.
+	 * 
+     * @return analytics instance.
+	 * 
+     * @throws Exception if initialization fails
+     */
+    public static Analytics getInstance(Supplier<String> splServerVersion) throws Exception {
+        return new DefaultAnalytics(splServerVersion);
+    }
+
 }

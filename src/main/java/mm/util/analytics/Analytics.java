@@ -25,4 +25,13 @@ public interface Analytics {
 	 */
 	public void postError(String uid, String msg) throws Exception;
 
+	/**
+	 * Start client session.
+	 * 
+	 * @param uid user ID.
+	 * 
+	 * @throws Exception
+	 */
+	public void startSession(String uid) throws Exception;
+
 }

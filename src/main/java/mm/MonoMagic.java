@@ -4,6 +4,7 @@ package mm;
 import static mm.ModConstants.MODID;
 import static net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext.get;
 import static java.util.Optional.ofNullable;
+import static mm.util.error.ErrorUtils.*;
 
 import java.util.Optional;
 import java.util.Random;
@@ -21,6 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -43,7 +45,7 @@ public class MonoMagic {
 	/*
 	 * Mod analytics.
 	 */
-	static Analytics analytics = DefaultAnalytics.getInstance();
+	static Analytics analytics;
 
 	/*
 	 * Mod proxy.
@@ -62,11 +64,17 @@ public class MonoMagic {
 
 	/**
 	 * No-arg constructor.
+	 * 
+	 * @throws Exception if initialization fails.
 	 */
-	public MonoMagic() {
+	public MonoMagic() throws Exception {
+	try {
 
 		// store instance
 		instance = this;
+
+		// create analytics
+		analytics = DefaultAnalytics.getInstance();
 
         // Register ourselves for forge events
         MinecraftForge.EVENT_BUS.register(this);		
@@ -79,11 +87,24 @@ public class MonoMagic {
 	
 		// perform client side initialization 
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientSetup::init);
+
+	} catch (ExceptionInInitializerError e) {
+		reportAndLogException(e);
+		throw e;
+	} catch (Exception e) {
+		reportAndLogException(e);
+		throw e;
 	}
+}
 
 	@SubscribeEvent
 	void serverAboutTostart(ServerAboutToStartEvent event) {
 		server = event.getServer();
+	}
+
+	@SubscribeEvent
+	void serverStarted(ServerStartedEvent event) {
+		proxy.startAnalyticsSession();
 	}
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

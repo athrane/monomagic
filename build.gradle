@@ -102,6 +102,9 @@ repositories {
     // flatDir {
     //     dir 'libs'
     // }
+
+    // Junit 5 
+    mavenCentral()
 }
 
 dependencies {
@@ -121,6 +124,15 @@ dependencies {
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+}
+
+// define test task
+test {
+    useJUnitPlatform()
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

@@ -11,20 +11,25 @@ import net.minecraftforge.fml.DistExecutor;
 public class DefaultProxy implements Proxy{
     
     /**
-     * Sided resolver instance.
+     * Sided proxy instance.
      */
-    Proxy sidedResolver; 
+    Proxy proxy; 
 
     /**
      * No-arg constructor.
      */
     DefaultProxy() {
-        sidedResolver = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
+        proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
     }
 
     @Override
     public String getUser() {
-        return sidedResolver.getUser();
+        return proxy.getUser();
+    }
+
+    @Override
+    public void startAnalyticsSession() {
+        proxy.startAnalyticsSession();        
     }
     
     /**

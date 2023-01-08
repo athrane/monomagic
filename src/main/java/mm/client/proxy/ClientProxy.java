@@ -15,5 +15,11 @@ public class ClientProxy implements Proxy {
         if(mcClient == null) return "Minecraft client not available - no user defined";
         return mcClient.getUser().getName();
     }
+
+    @Override
+    public void startAnalyticsSession() {
+        // TODO Auto-generated method stub
         
+    }
+     
 }
