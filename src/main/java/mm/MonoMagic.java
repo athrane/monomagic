@@ -8,6 +8,7 @@ import static mm.util.error.ErrorUtils.*;
 
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,6 +64,14 @@ public class MonoMagic {
 	static MonoMagic instance;
 
 	/**
+	 * Get server version function for analytics.
+	 */
+	Supplier<String> splServerVersion = () -> {
+		Optional<MinecraftServer> optServer = getMod().getServer();
+		return optServer.map(s -> s.getServerVersion()).orElse("N/A");
+	};
+
+	/**
 	 * No-arg constructor.
 	 * 
 	 * @throws Exception if initialization fails.
@@ -74,7 +83,7 @@ public class MonoMagic {
 		instance = this;
 
 		// create analytics
-		analytics = DefaultAnalytics.getInstance();
+		analytics = DefaultAnalytics.getInstance(splServerVersion);
 
         // Register ourselves for forge events
         MinecraftForge.EVENT_BUS.register(this);		

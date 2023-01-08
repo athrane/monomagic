@@ -11,8 +11,6 @@ import static mm.ModConstants.GA_SOURCE;
 import static mm.ModConstants.NAME;
 import static mm.ModConstants.NUMBER_HTTP_THREADS;
 import static mm.ModConstants.VERSION;
-import static mm.MonoMagic.getMod;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
@@ -20,7 +18,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
@@ -41,7 +38,6 @@ import com.google.gson.Gson;
 import mm.util.analytics.event.AnalyticsPayload;
 import mm.util.analytics.event.DefaultAnalyticsPayload;
 import mm.util.analytics.event.StartSessionAnalyticsEvent;
-import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.minecraftforge.versions.mcp.MCPVersion;
 
@@ -107,25 +103,6 @@ public class DefaultAnalytics implements Analytics {
 	Supplier<String> splServerVersion;
 
     /**
-     * No-arg constructor.
-	 * 
-     * @throws Exception if initialization fails.
-     */
-	@Deprecated
-    public DefaultAnalytics() throws Exception {
-        httpClient = HttpClientBuilder.create().build();
-        httpContext = HttpClientContext.create();
-        executorService = newFixedThreadPool(NUMBER_HTTP_THREADS);
-        executionService = new FutureRequestExecutionService(httpClient, executorService);
-        responseHandler = new NullResponseHandler();
-        jvmArgs = getJvmArgs();
-		uriBuilder = new URIBuilder(ANALYTICS_URL);
-		uriBuilder.addParameters(createRequestParameters());
-		gson = new Gson();
-        uids = new HashMap<>();
-    }
-
-    /**
      * constructor.
 	 * 
 	 * @param splServerVersion function to supply the server version.
@@ -145,7 +122,6 @@ public class DefaultAnalytics implements Analytics {
 		gson = new Gson();
         uids = new HashMap<>();
 	}
-
 
     @Override
 	public void postException(String uid, Throwable e) throws Exception {
@@ -234,8 +210,7 @@ public class DefaultAnalytics implements Analytics {
 	String createUserInfo(String uid) {
 
 		// get Minecraft version
-		Optional<MinecraftServer> optServer = getMod().getServer();
-		var mcVersion = optServer.map(s -> s.getServerVersion()).orElse("N/A");
+		var mcVersion = splServerVersion.get();
 
 		// get Forge version
 		var forgeVersion = ForgeVersion.getVersion();
@@ -280,18 +255,6 @@ public class DefaultAnalytics implements Analytics {
 		parameters.add(new BasicNameValuePair("firebase_app_id", GA_API_VERSION));
 		return parameters;
 	}
-
-    /**
-     * Factory method.
-     * 
-     * @return analytics instance.
-	 * 
-     * @throws Exception if initialization fails
-     */
-	@Deprecated
-    public static Analytics getInstance() throws Exception {
-        return new DefaultAnalytics();
-    }
 
     /**
      * Factory method.
